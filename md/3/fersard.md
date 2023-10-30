@@ -26,3 +26,37 @@
 - 그래서 라이브러리 사용자에게 퍼사드를 제공해서 여러 클래스를 보다 쉽게 사용할 수 있도록 함
 - 이를 위한 한가지 방법은 이 모든 로직을 캡슐화하는데 새 클래스를 만드는 것
 - 대부분의 언어에서는 이런 전략을 씀
+- 그러나 코틀린에는 더 좋은 방법이 있는데 3장의 어댑터 패턴을 설명할 때도 활용했던 확장 함수를 이용하면 됨
+- Server클래스에 startFromConfiguration()이라는 확장 함수를 다음과 같이 구현할 수 있음
+```
+@ExperimentalPathApi
+fun Server.startFromConfiguration(fileLocation: String){
+  val path = Path(fileLocation)
+  val lines = path.toFile().readLines()
+  val configuration = try{
+    JsonParser().server(lines)
+  }
+  catch (e: RuntimeException){
+    YamlParser().server(lines)
+  }
+
+  Server.withPort(configuration.port)
+}
+```
+- 보다시피 어댑터 디자인 패턴에서 봤던 것과 정확히 같은 코드임
+- 그러나 목적은 다름. 어댑터 디자인 패턴은 사용할 수 없는 클래스를 사용할 수 있도록 만드는 것이 목적
+- 코틀린의 주요 목표 중 하나가 코드 재사용성을 최대화하는 데에 있다는 것을 기억할 것
+- 반면 퍼사드 디자인 패턴의 목적은 복잡한 클래스들을 사용하기 쉽게 만드는 것
+> 이 책을 읽는 시점에 따라 ExperimentalPathApi어노테이션이 더이상 필요하지 않을 수 있음
+> 이 기능은 코틀린 1.4에 처음 도입됐는데 기능이 안정되면 언어의 일부로 도입될 예정이기 때문
+- 코틀린에서 try는 식이기 때문에 값을 반환한다는 사실은 이미 설명함
+- 앞의 예제 코드에는 catch 블록도 값을 반환할 수 있다는 것을 보여줌
+- 덕분에 가변 변수를 선언하지 않아도 됨
+- 함수 첫 두줄에 무슨일이 일어나는지 보자
+
+#### Path
+- path는 코틀린 1.4에서 도입된 제법 최신의 API
+- 파일을 더욱 쉽게 다룰 수 있게 해줌
+- 여기서 쓰인 toFile함수도 파일 경로를 실제 파일로 변환해주는 어댑터 디자인 패턴이라는 점을 주목
+- 마지막으로 readLines() 함수는 파일을 통째로 메모리로 읽어 들인 뒤 파일 내용을 줄 단위로 또갬
+- 코드가 좀 더 단순해지면 좋겠다는 생각이 들면 퍼사드 디자인 패턴 도입을 고려한다.
