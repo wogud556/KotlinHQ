@@ -132,3 +132,43 @@ class FromClause(private val table: String){
     override fun toString() = "From $table $where"
 }
 ```
+- 이번에는 apply 함수를 사용해서 짧은 버전으로 작성해봄
+- 코드의 내용은 간단하다. 입력으로 받은 문자열로 WhereClause객체를 초기화하고 그것을 반환함
+```
+class WhereClause(private val conditions : String){
+    override fun toString() = "WHERE $conditions"
+}
+```
+- WhereClause클래스는 전달받은 조건문을 WHERE키워드와 함꼐 출력하는 역할을 함
+```
+class FromClause(private val table: String){
+    // 다른 코드는 생략
+    override fun toString() = "FROM $table $where"
+}
+```
+- FromClause 클래스는 FROM 키워드와 함께 테이블명 및 WhereClause의 출력 결과를 출력함
+```
+class SelectClause(private val columns: String){
+    // 다른 코드는 생략
+    override fun toString() = "SELECT $columns $from"
+}
+```
+- SelectClause클래스는 SELECT 키워드, 칼럼명, FromClause가 출력한 내용 전체를 출력함
+
+#### 쉬어가기
+- 코틀린은 가독성이 높고 타입 안전한 DSL을 만들기 위해 여러가지 아름다운 기능을 제공함
+- 그러나 해석기 디자인 패턴은 가장 다루기 어려운 패턴 중 하나이기도함
+- 한번 읽어서 내용이 이해가 가지 않는다면 예제 코드를 디버깅하는데에 시간을 투자해봐라
+- 각 단계에서 this가 가리키는 것이 무엇인지, 언제 객체의 함수가 호출되고 언제 객체의 메서드가 호출되는지 고민해본다
+
+### 접미 호출
+- 코틀린에서 DSL에 관련된 기능 하나를 설명하지 않고 미뤄왔음
+- 헷갈릴 수 있기 때문
+- DSL을 사용한 예제 코드를 본다
+```
+val sql = select("name,  age") {
+    from("users") {
+        where("age > 25")
+    } // from
+}//select
+```
