@@ -124,3 +124,126 @@ println(withoutFirst(list)) // 이번에도 1 출력
 - 외부 요소에 따라 동작이 달라지지 않고 보이는대로 동작하기 때문
 
 ### 커리
+- 커리는 인수 여러개를 받는 함수를 단일 인수로 받는 함수의 연쇄  호출로 변환하는 것을 말함
+- 예제로 뭔뜻인지 보다
+```
+fun subtrac(x: Int, y: Int) : {
+    return x - y
+}
+println(substract(50, 8))
+```
+- 이 함수는 2개의 인수를 받아서 두 수의 차를 반환함
+- 그런데 어떤 언어에서도 이 함수를 다음과 같이 호출할 수 있음
+```
+substract(50)(8)
+```
+- 이것이 함수에 커리를 작용해서 호출한 것
+- 커리는 입력 인수가 여러개(예제에서는 2개)인 함수를 인수가 하나인 여러개의 함수로 바꿔줌\
+- 코틀린에서 커리를 적용하는 방법을 살펴본다
+- 함수에서 다른 함수를 반환하는 방법은 이미 배움
+```
+fun subtract(x : Int): (Int) -> Int {
+    return fun (y : Int) : Int {
+        return x - y
+    }
+}
+```
+- 이 코드를 더 짧게 쓰면 다음과 같음
+```
+fun subtract(x: Int) = fun(y: Int): Int{
+    return x - y
+}
+```
+- 이 코드에서는 반환형을 명시하지 않고 return 키워드도 사용하지 않는다
+- 대신 단일식 문법을 사용해서 익명함수를 반환했음
+- 다음과 같이 더 짫게 줄여쓸 수 있음
+```
+fun subtrack(x: Int) = {y: Int -> x - y}
+```
+- 이제 익명 함수가 람다 함수가 됐고 람다 함수의 반환형도 자동으로 추론됨
+- 커리는 그 자체로는 그다지 유용하지 않지만 어쨌든 흥미로운 개념임
+- 또한 구직 중인 자바스크립트 개발자라면 커리를 이해해야 함
+- 단골 인터뷰 질문이기 떄문
+- 실제 로그를 기록할 때 커리를 사용핳기도 함 log함수는 보통 다음과 같이 생김
+```
+enum class LogLevel {
+    ERROR, WARNING, INFO
+}
+fun log(level : LogLevel, message: String) = 
+    println("$level: $message")
+```
+- 다음과 같이 함수를 변수에 저장해놓으면 로그 수준을 고정할 수 있음
+```
+val errorLog = fun(message: String) {
+    log(LogLevel.ERROR, message)
+}
+```
+- log함수보다 errorLog함수가 더 사용하기 쉬움, 인수를 하나만 받기 때문
+- 그렇다면 이런 생각이 들 수 있음
+- 모든 로그 수준에 대해 로거를 미리 만들어 놓기는 싫다면 어떻게 하나
+- 그럴 때 커리를 사용, 이 코드를 커리 버전으로 작성하면 다음과 같음
+```
+fun createLogger (level: LogLevel): (String) -> Unit {
+    return {
+        message: String -> log(level, message)
+    }
+}
+```
+- 이제 사용자가 편하게 로그 함수를 만들 수 있음
+```
+val infoLogger = createLogger(LogLevel.INFO)
+infoLogger("로그 메시지")
+```
+- 사실 이느느 2장에서 배웠던 팩토리 패턴과 비슷함
+- 다시 한번 강조하지만 현대적 언어의 힘을 빌리면 적은 개수의 클래스를 갖고도 같은 기능을 구현할 수 있음
+
+### 메모이제이션
+- 어떤 함수와 같은 입력에 대해서 항상 같은 출력을 낸다면 입력마다 출력을 저장함으로써 함수의 결과를 캐시하는 것도 어렵지 않음
+- 이 기법을 메모이제이션 이라고 함
+- 개발하는 시스템이나 해결하려는 문제가 무엇이든 간에 일반적으로 같은 계산을 여러번 반복하는 일은 최대한 피해야 함
+- 예를 들어 여러개의 정수 세트를 받아 각 세트의 총합을 출력하는 함수를 만든다 한다
+```
+val input = listOf(
+    setOf(1,2,3),
+    setOf(3,1,2),
+    setOf(2,3,1),
+    setOf(4,5,6)
+)
+```
+- 처음 3개의 입력은 사실상 같음 원소가 나열된 순서만 다르기 때문에 더하기를 세번하는건 낭비
+- 함계를 계산하는 함수는 다음과 같이 순수 함수로 작성할 수 있음
+```
+fun sum(number: Set<Int>): Double {
+    return numbers.sumByDouble { it.toDouble()}
+}
+```
+- 이 함수는 어떠한 외부 상태에도 의존하지 않으며 외부 상태를 변경하지도 않음
+- 따라서 어떤 입력에 대해 이 함수를 호출한 적이 있다면 같은 입력에 대해서는 다시 함수를 호출하지 않고 이전 반환값을 사용해도 무방함
+- 각 입력에 대한 계산 결과는 다음과 같이 가변 맵에 저장할 수 있음
+```
+val resultsCache = mutableMapOf<Set<Int>, Double>()
+```
+- 고차 함수를 사용하면 따로 클래스를 만들지 않고도 캐시를 적용할 수 있음
+```
+fun summarizer():(Set<Int>) -> Double {
+    val resultsCache = mutableMapOf<Set<Int>, Double>()
+
+    return {
+        number: Set<Int> -> resultsCache.computeIfAbsent(numbers, ::sum)
+    }
+}
+```
+- 캐시되지 않은 입력에 대해서 값을 계산할 때는 sum() 함수를 사용하라고 computeIfAbsent 함수에 지시하기 위해 메서드 참조 연산자(::)를 사용함
+- sum()은 순수 함수이지만 summerizer()는 아님
+- summerizer() 함수는 같은 입력에 대해서도 다른 식으로 동작할 것임
+- 하지만 이 경우에는 그것을 원하는 것
+- 앞서 제시한 입력에 대해서 다음 코드를 실행하면 합계 계산은 딱 두번만 이루어질 것
+```
+val sermmarize = summarizer()
+input.forEach{
+    println(summarizer(it))
+}
+```
+- 불변 객체, 순수 함수, 클로저를 조합해서 구현한 메모제이션은 성능 최적화를 위한 강력한 도구가 됨
+- 단 기억하라 세상에 공짜는 없다. CPU성능을 얻는다면 잃는것도 있음, 메모리 공간임
+- 각 경우에 어떤 자원이 더 값비싼지는 개발자가 알아서 판단할 일임
