@@ -91,6 +91,103 @@ thread(isDaemon = true) {
 - 최종적으로 counter 변수의 값을 확인하기 전에 먼저 모든 스레드가 작업을 끝냈다는 것을 확인하기 위해 CountDownLatch를 사용할 것
 ```
 val counter = 0
-val
+val latch = CountDownLatch(100_000)
+repeat(100) {
+    thread{
+        repeat(1000) {
+            counter ++
+            latch.countDown()
+        }
+    }
+}
+latch.await()
+println("Counter $counter")
 ```
-- test
+- 이 코드가 올바른 값을 출력하지 않는 것은 ++연산자가 원자적이지 않은 까닭에 경합 조건이 발생했기 때문
+- 더 많은 스레드가 counter 변수의 값을 증가시키려 함수와 경합이 발생할 확률은 올라감
+- 자바와 달리 코틀린에는 synchronized 키워드가 없음
+- 코틀린을 설계한 사람들은 어떤 특정한 동시성 모델에만 맞춰 언어를 만들면 안된다고 생각했기 때문
+- 대신 synchronized() 함수를 사용할 수 있음
+```
+thread {
+    repeat(1000) {
+        synchronized(latch) {
+            counter ++
+            latch.countDown()
+        }
+    }
+}
+```
+- 이제 이코드는 예상대로 100,000을 출력함
+- 자바의 synchronized 키워드가 그립다면 코틀린에서는 @Synchronized 어노테이션을 사용할 수 있다.
+- 자바의 volatile 키워드도 @volatile 어노테이션으로 대체함
+- 표 6.1은 예제와 함께 양쪽을 비교함
+- 표 그리기 귀찮은디
+
+|자바|코틀린|
+|--|--|
+|synchronized void doSomething()|@Synchronized fun doSomething()|
+|volatile int sharedCounter = 0;|@Volatile  var sharedCounter| Int = 0|
+
+- Synchronized와 Volatile이 키워드가 아닌 어노테이션인 이유는 코틀린이 jvm이외의 다른 플랫폼으로도 컴파일 될 수 있기 때문
+- 반면 Synchronized 메서드의 volatile 변수는 JVM에서만 존재함
+
+### 왜 스레드는 값비싼가?
+- 스레드 생성에는 비용이 따름
+- 각 스레드는 새로운 메모리 스택이 필요하다.
+- 스레드에서 Sleep을 호출해 어떤 작업을 모사하면 어떻게 될까?
+- 다음 코드에서는 1만개의 스레드를 생성함. 각 스레드는 비교적 짧은 시간 동안 잠들며 걸리는 어떤 작업을 모사함
+```
+val counter = AtomicInteger()
+try{
+    for (i in 0..10_000) {
+        thread {
+            counter.incrementAndGet()
+            Thread.sleep(100)
+        }
+    }
+} catch (oome: OutOfMemoryError) {
+    println("오류가 발생하기 전까지 ${counter.get()}개의 스레드를 생성")
+    System.exit(-42)
+}
+```
+- 각 스레드는 스택을 만드릭 위해 1MB의 램 공간이 필요함
+- 따라서 스레드를 너무 많이 만들면 운영체제에서 너무 자주 접근하게 될 뿐만 아니라 메모리도 많이 소요됨
+- 코드에서는 메모리가 부족한 상황이 실제로 발생하는지 확인하기 위해 이에 해당하는 예외를 잡음
+- 사용하는 운영체제에 따라 OutOfMemoryError가 발생할 수 있고, 아니면 전체 시스템이 굉장히 느려질 수 있음
+- 당연히 Excutors API를 사용하면 한 번에 실행 가능한 스레드의 개수를 제한할 수 있음
+- 이 API를 사용하면 정해진 크기의 스레드 풀을 생성할 수 있음. 풀의 크기를 1로도 설정해보고, 컴퓨터의 코어 개수와 동일하게도 설정해보고, 100이나 2000으로도 설정해보면서 어떤일이 일어나는지 본다
+```
+val pool Executors.newFixedThreadPood(100)
+```
+- 이제 pool.submit() 함수를 호출하면 새로운 작업 스레드 풀에 요청할 수 있음
+```
+val counter = AtomicInteger(0)
+val start = System.currentTimeMillis()
+for(i in 1..10_000){
+    pool.submit {
+        // 어떤 작업
+        counter.incrementAndGet()
+
+        // IO 작업 대기를 모사
+        Thread.sleep(100)
+
+        // 또 다른 작업을 수행
+        counter.incrementAndGet()
+    }
+}
+```
+- sleep을 호출하기 전과 후에 counter를 증가시킴으로 비즈니스 로직을 모사함
+- 예를 들어 sleep 호출 전의 작업은 Json 데이터를 준비하는 로직을, sleep 호출은 네트워크 작업을, sleep 호출 후의 작업은 결과를 파싱하는 로직을 모사한다고 생각할 수 있음.
+- 그리고 다음 코드를 사용하여 최대 20초 후에는 스레드풀이 반드시 종료되도록 할 수 있음
+```
+pool.awaitTermination(20, TimeUnit.SECONDS)
+pool.shutdown()
+println("${System.currentTimeMillis() - start} 밀리초 동안 ${counter.get() / 2} 개의 작업을 완료함")
+```
+- 이 코드는 20초가 지나서 종료됨
+- 이전 작업이 잠에서 깨어나서 작업을 완료할 때 까지는 새로운 스레드가 작업을 시작할 수 없기 때문
+- 이게 바로 멀티스레드 시스템에서 일어나는 일임
+- 동시성이 충분하지 않기 때문에 자원을 최대한으로 사용하지 못함
+- 다음 절에는 코루틴을 사용하여 이러한 문제를 해결하는 법을 본다.
+- 
