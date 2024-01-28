@@ -1,0 +1,131 @@
+6. 
+
+package
+
+- 소스 파일은 패키지 선언으로 시작
+- 모든 콘텐츠는 패키지에 포함 됨
+- 패키지를 명세하지 않으면 이름이 없는 기본 패키지에 포함됨
+
+package foo
+
+
+
+other2.kt
+package hi.pkg
+
+test.kt
+import hi.pkg.printOther2 -> hi.pkg에 지정이 되어있는 메소드를 가져올 수 있다.
+
+
+fun main(args : Array<String>){
+    other1()
+    other2()
+}
+
+
+기본패키지
+- 기본으로 import되는 package가 있음
+- 플랫폼 별로 import 되는 package도 다른 부분이 있다.
+
+kotlin.*
+kotlin.annotation.*
+kotlin.collections.*
+kotlin.comparisons.*
+kotlin.io.*
+kotlin.ranges.*
+kotlin.sequences.*
+kotlin.text.*
+
+jvm:
+java.lang.*
+jsL
+kotlin.js.*
+
+import
+- 기본으로 포함되는 패키지 외에도 필요한 package들을 직접 import 할 수 있음
+//Bar 하나만 import
+import foo.Bar
+
+//foo 패키지에 모든 것을 import함
+import foo.*
+
+//foo.Bar
+//bar.Bar 이름이 충돌 나는 경우 as 키워드로 로컬 리네임 가능
+Import bar.Bar as bBar -> alias
+
+Return and jump
+
+3가지 jump 표현식
+- return : 함수나 익명 함수에서 반환
+- break : 루프를 종료시킴
+- continue : 루프의 다음 단계로 진행
+
+Label로 break and continue
+- 레이블 표현 : label@ abc@ fooBar@ @로 붙임으로
+- 식별자 + @ 형태로 사용
+
+labelDefinition
+prefixUnaryOperation annotatedLambda
+: LabelName ++ "@"
+;
+
+loop@ for(i in 1..10){
+ println("----i : $i ---")
+ for(j in 1..10)
+   println("j: $j")
+   if(i+ j > 12){
+    break@loop
+  }
+}
+
+loop@ for(i in 1..10){
+ println("----i : $i ---")
+ for(j in 1..10)
+   println("j: $j")
+   if(i+ j > 12){
+    continue@loop
+  }
+}
+
+
+label 로 return //람다로 리턴을 해야 할 경우
+- 코틀린에서 중첩될 수 있는 요소
+- 함수 리터럴(function literals)
+- 지역함수(local function)
+- 객체표현식(object expression)
+- 함수 (function)
+
+fun foo(){
+   var ints = listOf(0,1,2,3)
+   
+   ints.forEach(fun(value: Int){
+      if(value == 1) return
+      print(value)
+   })
+   return
+}
+
+- 람다식에서 return할 때 주의사항
+ - 람다식에서 return시 nereast enclosing 함수가 return됨
+ - 람다식에서 대해서만 return 하려면 label을 이용해야 함
+
+암시적 레이블
+- 람다식에서만 return하는 경우 label을 이용해서 return해야함
+- 직접 label 을 사용하는 것 보다 암시적으로 레이블이 편리함
+- 암시적 레이블은 람다가 사용된 함수의 이름과 동일함
+
+레이블 return 시 값을 반환하는 경우
+
+- return@label 1 형태로 사용
+- return + @label + 값
+
+fun foo() : List<String>{
+   var ints = listOf(01,2,3)
+   val result = ints.map{
+      if(it == 0){
+         return@map "zero"
+      }
+        "number $it"
+   }
+    return result
+}

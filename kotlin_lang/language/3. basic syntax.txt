@@ -1,0 +1,147 @@
+패키지 정의
+- 패키지 정의는 파일 최상단 위치
+- 디렉터리와 패키지를 일지시키지 않아도 됨
+ex)
+   package my.demo
+   import java.util.*
+
+함수의 정의 : 기본적으로 세미콜론을 사용하지 않는다.
+fun키워드로 정의
+
+fun 함수명(변수명: 자료형): 리턴타입 {
+   return 리턴할 것
+}
+
+ex)
+
+fun sum(a: Int ,b :Int) Int {
+   return a+ b;
+}
+
+- 함수 몸체가 식(expression)인 경우 return 생략 가능
+- 이런 경우 return type이 추론됨
+fun sum(a: Int, b: Int) = a + b
+
+- 리턴할 값이 없는 경우 Unit(Object)으로 리턴을 함
+- Unit은 java의 void 리턴 역할
+- unit은 생략 가능
+ex)
+fun printKotlin(): Unit(적어도 되고 안적어도 된다.){
+   println("hello Kotlin")
+}
+
+지역변수 정의
+
+- val: 읽기 전용 변수
+- 값의 할당이 1회만 가능 java의 final과 유사
+
+val 변수명: 타입 = 1//즉시할당
+val b = 2// Int 타입 추론
+val c: Int // 컴파일 오류, 초기화가 필요함
+c = 3 // 컴파일 오류, 읽기 전용
+
+var : Mutable 변수
+var x = 5
+x += 1
+
+주석
+- java와 javascript와 유사함
+- // 한줄
+- /**/ : 여러줄 주석(block commend)
+- block comment 가 Java와 다르게 중첩 허용됨
+
+문자열 템플릿
+- String Interpolation(문자열 보간법)
+ex) 
+var a = 1
+var s1 = "a is $a"
+
+a = 2
+
+조건문
+
+if(a > b){
+
+}else {
+
+}
+- 조건식으로 사용 가능
+fun maxOf(a:Int, b:Int) = if(a>b) a else b 
+
+-nullable
+값이 null일 수 있는 경우 타입에 nullable (?로 표시)마크를 명시 해야 함
+fun parseInt(str: String): Int?{
+   //정수가 아닌 경우 null을 리턴
+}
+
+-nullable 타입의 변수를 접근할 때 반드시 null 체크를 해야 함
+- 그렇지 않으면 컴파일 오류가 발생 됨
+
+fun printProduct(arg1:String, arg2:String){
+  val x: Int? = parseInt(arg1)
+  val y: Int? = parseInt(arg2)
+
+  if(x != null && y !=null){
+      println(x * y)
+  } else{
+      println("either '$arg1' or '$ arg2' is not a number")
+  }
+}
+
+자동타입변환
+ - 타입 체크만 해도 자동으로 타입 변환이 됨
+
+fun getStringLength(obj: Any): Int?{
+  if(obj is String){
+     return obj. length
+  }
+   return null
+}
+
+while loop
+자바와 같음
+
+when expression
+fun describe(obj: Any):String = 
+   when (obj){
+      1 -> "One"
+      "hello" -> "Greeting"
+      is Long -> "Long"
+      !is String -> "Not a String"
+   }
+obj의 내용에 따라서 바뀌는 값을 보이는 것.
+
+
+range
+-  In 연산자를 이용해서 숫자 범위를 체크 가능
+   val x = 3
+    if(x in 1..10){
+     println("fits in range")
+}
+
+- range를 이용한 for loop
+   for(x in 1..5){
+    print(x)
+}
+
+-collections
+컬렉션도 in으로 loop가능
+val items = listOf("apple","banana","kiwi")
+for(item in items){
+   println(item)
+}
+
+in으로 해당 값이 collection에 포함되는지 체크 가능
+val items = setOf("apple", "banana", "kiwi")
+when{
+     "orange" in items -> println("juicy")
+     "apple" in items -> println("apple is fine too")
+}
+
+람다식을 이용하여 컬렉션에 filter, map 드으이 연산 가능
+val fruits = listOf("banana", "avocado", "apple","kiwi")
+fruit
+      .filter{it.statsWith("a")}
+      .sortedBy{it}
+      .map {it.toUpperCase() }
+      .foreach

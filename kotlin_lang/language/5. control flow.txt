@@ -1,0 +1,121 @@
+Control Flow
+
+If else 문
+
+java와 유사
+
+var max = 0
+if(a<b) {
+  max = a
+} else {
+  max = b
+}
+
+식으로 사용될 경우
+- 값을 반환함
+- 반드시 else를 동반해야함
+val max = if(a>b) a else b
+
+- if 식의 branches 들이 블록을 가질 수 있음
+- 블록의 마지막 구문이 반환 값이 됨
+val max = if(a > b){
+  print("Choose a")
+  a --> 이때 a블록이 됨
+} else {
+  print("Choose b")
+  b --> 이떄 b블록이 됨
+}
+
+-3항 연산자가 없다
+
+int = max = (a>b) ? a : b
+val max = if(a>b) a else b --> 이걸로 대체 가능
+
+when
+- when은 c계열 언어의 switch문을 대체함
+- when문은 각각 branches 의 조건문이 만족할 때 까지 위에서부터 순차적으로 인자를 비교함
+
+when(x){
+  1 -> print("x == 1") -> x 가 1
+  2 -> print("x == 2") -> x 가 2
+  else -> {
+     print("x is neither 1 nor 2")
+  }
+}
+
+- when 문이 식으로 사용된 경우 조건을 만족하는 branch의 값이 전체 식의 결과 값이 됨
+- else의 경우 다른 branch들의 조건이 만족되지 않을 때 수행됨
+- when이 식으로 사용된 경우 else문이 필수임
+- when이 식으로 사용된 경우 컴파일러가 else 문이 없어도 된다는 것을 입증할 수 있는 경우에는 else를 생략 가능
+
+var res = when(x){
+  100 -> "A"
+   90 -> "B"
+   80 -> "C"
+   else -> "F"
+}
+
+var res = when(x){
+  true -> "맞다"
+  false -> "틀리다"
+}
+
+when
+- 여러 조건들이 같은 방식으로 처리될 수 있는 경우, branch의 조건문에 콤마를 (,) 사용하여 표기하면 됨
+  when(x){
+    0,1 -> print("x==0 or x==1")
+    else -> print("otherwise")
+  }
+
+- range나 collection에 in이나 !in으로 범위 등을 검사할 수 있다.
+  val validNumbers = listOf(3, 6, 9)
+  when (x) {
+    in validNumber -> print("x is valid")
+    in 1..10 -> print("x is in the range")
+    !in 10..20 -> print("x is outside the range")
+    else -> print("none of the above")
+  }
+
+when
+- is 나 !is를 이용하여 타입도 검사할 수 있음
+- 이때 스마트 캐스트가 적용됨
+
+fun hasPrefix(x: Any) = when(x){
+   is String -> x.startWith("prefix")
+   else -> false
+}
+
+- when 은 if-else if 체인을 대체할 수 없음
+- when에 인자를 입력하지 않으면 논리 연산으로 처리됨
+
+when {
+  x.idOdd() -> print("x is odd")
+  x.isEven() -> print("x is even")
+  else -> print("x is funny")
+}
+
+For Loops
+- for문은 iterator을 제공하는 모든 것을 반복할 수 있음
+for (item in collection)
+    print(item)
+
+- for문의 Body가 블록이 올 수도 있음
+for(item in collection){
+    print(item.id)
+    print()
+
+}
+
+- for 문을 지원하는 iterator의 조건
+ 멤버함수나 확장함수중에
+ iterator()을 반환하는 것이 있는 경우
+  next()를 가지는 경우
+  hasNext() : Boolean를 가지는 경우
+  위의 함수는 operator로 표기되어야 함
+
+- 배열이나 리스트를 반복할 때 index를 이용하고 싶다면 indices를 이용하면 됨
+val array = arrayOf("가","나","다")
+for(i in array.indices){
+  println("$i: $(array[i])")
+}
+- index를 이용하고 싶을 때, withindex()를 이용할 수 있음.

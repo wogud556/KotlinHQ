@@ -1,0 +1,123 @@
+basic types
+
+기본타입
+- 코틀린에서 모든 것은 객체
+- 모든 것에 멤버 함수나 프로퍼티를 호출 가능하다는 의미에서
+
+숫자
+- java의 숫자형과는 거의 비슷하게 처리
+- kotlin에서 number는 클래스임. java 의 primitive type 에 직접 접근할 수 없다
+- java 에서 숫자형이던 char가 kotlin에서 숫자 형이 아님
+
+리터럴
+- 10진수 : 123
+- long 
+- double
+- float
+- 2진수
+- 8진수는 미지원
+- 16진수 : 0x0f
+
+representation
+
+- java 플랫폼에서 숫자형은 jvm primitive type 으로 저장됨
+- nullable이나 제네릭의 경우에는 박싱됨
+- 박싱된 경우 identity를 유지하지 않음
+
+class test {
+    fun test(){
+        //자바플랫폼에서 숫자형은 jvm primitive type으로 저장됨
+        //nullable이나 제네릭의 경우에는 박싱됨
+        //박싱된 경우 identity를 유지하지 않음
+
+        var a : Int = 10000
+        var b : Int? = 10000 //nullable로 박싱하였을 떄 Integer라는 패키지로 바뀌었다. 고로 형 자체가 바뀜
+        var c : Int = 10000
+        var d : Int = 10000
+        println("a === b: ${a === b}") //equal 세개인경우 해당 오브젝트가 참인지 알 수 있다.
+        println("a == b: ${a == b}") //equal 세개인경우 해당 오브젝트가 참인지 알 수 있다.
+
+    }
+}
+
+explicit conersions
+- 작은 타입은 큰 타입의 하위 타입이 아님, 즉 작은 타입에서 큰 타입으로 대입이 안됨
+ex)
+val a: int = 1
+val b: Long = a.toLong()
+
+- 명시적으로 변환을 해줘야 함
+
+val i: int = b.tolnt()
+
+toByte(): Byte
+toShort(): Short
+toInt(): Int
+toLong(): Long
+toFloat(): Float
+toDouble(): Double
+toChar(): Char
+
+문자(Characters)
+char는 숫자로 취급 되지 않음
+
+fun chech(c:char){
+   if(c == 1)
+}
+
+fun check(c: Char){
+   if(c == 'a')
+}
+
+print('0'.toInt) //아스키코드 출력
+
+배열
+배열은 Array 클래스로 표현됨
+get set ([] 연산자 오버로딩됨)
+size 등 유용한 멤버 함수 포함
+
+var array : Array<String> = arrayOf("코틀린","강좌")
+println(array.get(0))
+println(array[0])
+println(array.size)
+
+배열생성
+- Array의 팩토리 함수를 이용
+- arrayOf()등의 라이브러리 함수 이용
+
+val b = Array (5, {i -> i.toString}) -> 0부터 시작하여 01234의 배열을 String 형으로 생성한다.(반복을사용하는 람다식)
+val a = arrayOf("0","1","2","3","4")
+
+특별한 Array 클래스
+- primitive 타입의 박싱 오버헤드를 없애기 위한 배열
+- IntArray ShortArray IntArray
+- Array를 상속한 클래스들은 아니지만 Array와 같은 메소드와 프로퍼티를 가짐
+- size 등 유용한 멤버 함수 포함
+  val x : IntArray = intArrayOf(1,2,3)
+  x[0] = 7
+  println(x.get(0))
+  println(x[0])
+  println(x.size)
+
+문자열
+- 문자열은 String 클래스로 표현
+- String은 characters로 구성됨
+- s[i]와 같은 방식으로 접근 가능 (immutable 이므로 변경 불가)
+
+var x: String = "Kotlin"
+println(x.get(0))
+println(x[0])
+println(x.length)
+
+문자열 리터럴
+- escape string("kotlin")
+ 전통적인 방식으로 Java String과 거의 비슷
+ Backslash 를 사용하여 escaping 처리
+- raw string("""Kotlin""")
+ escaping 처리 필요 없음
+ 개행이나 어떠한 문자 포함 가능
+
+ val s = "Hello, world"\n
+ val s = """
+"'이것은 코틀린의 rowString 입니다.'"
+"""
