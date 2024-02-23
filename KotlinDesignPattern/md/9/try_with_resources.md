@@ -31,3 +31,5 @@ br.use {
     println(it.readLines())
 }
 ```
+- 어떤 객체에 use() 함수를 사용하기 위해서는 그 객체가 Closeable 인터페이스를 구현해야 함
+- Closeable 객체는 use()블록이 끝나자마자 자동으로 닫힐 것
